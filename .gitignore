@@ -143,7 +143,6 @@ id_ed25519
 /.gcloud/
 /.config/gcloud/
 /.ssh/
-/.codex/
 .idea/
 .vscode/
 
