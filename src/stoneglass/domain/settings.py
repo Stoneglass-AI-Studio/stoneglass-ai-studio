@@ -46,6 +46,8 @@ class AppSettings:
     maximized: bool = False
     sidebar_collapsed: bool = False
     generation: GenerationSettings = field(default_factory=GenerationSettings)
+    model_path: str = ""
+    resource_manifest_path: str = ""
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "AppSettings":
@@ -58,6 +60,8 @@ class AppSettings:
             generation=GenerationSettings.from_dict(
                 generation if isinstance(generation, dict) else {}
             ),
+            model_path=data.get("model_path", "") if isinstance(data.get("model_path", ""), str) else "",
+            resource_manifest_path=data.get("resource_manifest_path", "") if isinstance(data.get("resource_manifest_path", ""), str) else "",
         )
 
     def to_dict(self) -> dict[str, Any]:

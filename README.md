@@ -1,12 +1,12 @@
 # Stoneglass
 
-Stoneglass is a free and open-source, standalone, local-first Windows 11 desktop image studio. **Phase 1 provides the application foundation only.** Its future inference engine will be Python code within this project, using a GPU-specific strategy established before installing PyTorch or Diffusers.
+Stoneglass is a free and open-source, standalone, local-first Windows 11 desktop image studio. **This development checkout connects the PySide6 interface to Stoneglass's own local SDXL inference worker.** The initial profile supports the reviewed AlbedoBase XL v3.1-Large checkpoint, its exact local resource bundle, and the validated RX 9060 XT ROCm environment.
 
-The dark PySide6 interface includes Generate, Models, Gallery, and Settings. You can edit prompts and generation preferences, inspect local hardware, and save preferences. **Generation, model loading, and gallery browsing are unavailable and labeled accordingly.** The Generate button is disabled; the preview is an empty state. There is no simulated image generation.
+The dark PySide6 interface includes Generate, Models, Gallery, and Settings. Select the checkpoint and matching manifest in Models, then choose **Validate model**. Generate becomes available only after local resources and the supported runtime pass validation. Progress, cancellation, fitted image preview, and full-resolution PNG export use the production worker. Gallery indexing and additional model/hardware profiles remain unavailable. There is no simulated image generation.
 
 Stoneglass is independent of ComfyUI, Automatic1111, Forge, and other image-generation applications. It does not use them as backends. Inference will run through Stoneglass's own engine, on your machine, without accounts or a cloud service.
 
-## Phase 1 interface
+## Desktop interface
 
 The sidebar uses the existing project-supplied logomark beside one application name. Its expanded width is 192 logical pixels; collapse it to 68 with the **Collapse** control or **Ctrl+B**. The choice saves locally. Collapsed navigation keeps tooltips and accessible names, and arrow-key navigation continues to work. If the mark is unavailable, text branding remains. See the [branding asset notes](src/stoneglass/ui/assets/README.md) for the packaged asset path and fallback.
 
@@ -14,19 +14,25 @@ Generate retains a two-column editor/preview layout. Resolution presets include 
 
 Manual dimensions still support 256–2048 px per side and round down to the grid when committed. The automatic aspect budget is applied only when a preset is selected: valid manual dimensions are preserved across page/sidebar changes and application restarts, including larger manual sizes that match a listed aspect. Each selector shows **Custom** when the dimensions do not match its choices; a named resolution may still have a Custom aspect if that ratio is not listed. The saved dimensions determine preset labels after restart. This UI budget does not establish a future model's VRAM requirements.
 
-The preview is an honest empty state, with separate viewport, toolbar, and status extension points for later work. Zoom, fit, save, and editing actions are not exposed as active controls. Generate stays disabled. Models and Gallery remain placeholders. Settings separates operating system, compute status, GPU name/vendor/driver, and unreported VRAM, with selectable, wrapping storage paths. **Save preferences** remains outside the scrolling content.
+The preview starts empty and displays a validated image after generation and owned-worker cleanup. It fits the image to the viewport without changing the full-resolution PNG. **Save PNG** exports the original bytes. Zoom and editing remain future work. Settings separates operating system, compute status, GPU name/vendor/driver, and unreported VRAM, with selectable, wrapping storage paths. **Save preferences** remains outside the scrolling content.
 
 See [UI refinement notes](docs/UI_REFINEMENT.md) for changed files, validation, and current limits.
 
 ## Project status and license
 
-This is an unreleased Phase 1 foundation being prepared for future public GitHub development. **The repository is not being published as part of this work.** Code and dependency licensing must be reviewed before its first public release. Phase 2 requires explicit project approval.
+This development checkout includes the existing inference architecture, a separately validated ROCm environment, and Stage 3 UI integration. The source repository is [Stoneglass-AI-Studio/stoneglass-ai-studio](https://github.com/Stoneglass-AI-Studio/stoneglass-ai-studio). This source update includes the independent engine, reviewed UI integration and operator-run offline acceptance workflow. No runtime binaries, model weights, local bundle, generated output or private audit evidence are included. See [inference architecture decisions](docs/INFERENCE_ARCHITECTURE.md), the [revised offline roadmap](docs/OFFLINE_INFERENCE_IMPLEMENTATION_PLAN.md), [Stage 1 validation](docs/LOCAL_INFERENCE_STAGE1.md), [the first real SDXL test](docs/LOCAL_INFERENCE_STAGE2.md), and [Stage 3 UI behavior and limits](docs/STAGE3_UI.md).
+
+The [scoped AppContainer prototype findings](docs/APPCONTAINER_PROTOTYPE.md) remain experimental history. OS network isolation is no longer a prerequisite for inference. The worker uses validated local resources and offline library settings; those settings are not an OS sandbox.
+
+The [standalone offline acceptance procedure](docs/OFFLINE_ACCEPTANCE.md) provides a local PowerShell launcher with preparation-only checks, operator confirmation, a fresh worker/empty Hub cache, and preserved local evidence. Stage 2 passed operator-run physical-disconnection acceptance and evidence review on November 7, 2026. That acceptance covers its recorded source/runtime/resources.
+
+**Stage 3.1 passed operator-run offline UI acceptance and evidence review on November 7, 2026**, for the recorded source, reviewed RX 9060 XT ROCm environment, AlbedoBase XL v3.1-Large checkpoint and complete local bundle. The operator completed model validation, generation, preview, PNG export and normal shutdown while declaring continuous physical disconnection. See the [offline UI procedure and scope](docs/OFFLINE_UI_ACCEPTANCE.md). This is manual offline functionality evidence, not OS network-isolation proof or certification of other profiles. Changed source/resources/runtime require fresh preparation and acceptance before extending that claim.
 
 The proposed project license is **GNU GPL version 3 or, at your option, any later version** (`GPL-3.0-or-later`). Original Stoneglass code, scripts, and documentation use these terms, except files explicitly carrying other terms and unmodified third-party license texts. Copyright remains with the respective contributors. See [LICENSE](LICENSE) for the official, unmodified GPL v3 text; the “or later” choice is declared here and in package metadata. Stoneglass is provided without warranty under that license.
 
-Dependencies retain their own licenses. Stoneglass branding is approved by the project owner for inclusion. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution and licensing scope. The Qt wheel-notice review concerns redistribution of dependency artifacts and packaged applications; this source-only repository does not include those implementations or binaries. That inventory is not a completed binary-distribution audit.
+Dependencies retain their own licenses, and Stoneglass branding is approved by the project owner for inclusion. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution and source-only licensing scope. Qt/ROCm dependency-artifact notices and packaged binary distribution remain separate reviews; no dependency implementation or binary is shipped here.
 
-Contributor setup, change guidelines, and contribution licensing are in [CONTRIBUTING.md](CONTRIBUTING.md). No public repository URL or issue tracker is advertised before publication is approved.
+Contributor setup, change guidelines, and contribution licensing are in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Setup and launch in PowerShell
 
@@ -38,7 +44,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m stoneglass
 ```
 
-The dependency installation requires network access to the Python package index. Once installed, the application runs offline. `PySide6-Essentials` supplies the `PySide6` Qt Core, GUI, Widgets, and QtTest modules without the additional WebEngine and multimedia bundles. Its only transitive runtime dependency is Shiboken. No PyTorch, Diffusers, compute runtimes, AI models, or other image-generation applications are installed or required.
+The dependency installation requires network access to the Python package index. Once installed, the desktop runs offline. `PySide6-Essentials` supplies Qt Core, GUI, Widgets, and QtTest without WebEngine or multimedia bundles; its transitive runtime dependency is Shiboken. These default setup commands do not install PyTorch, Diffusers, compute runtimes, or models. Inference additionally requires the separately reviewed `.venv-rocm` installation and complete validated local resources; see [runtime assessment](docs/GPU_RUNTIME_ASSESSMENT.md). This experimental profile is not provisioned by cloning the repository: the private wheel hash lock, local manifest and configuration bundle are not shipped. Missing prerequisites leave generation unavailable; the default setup launches the GUI and supports model-free tests. There is no automatic dependency or model acquisition. Missing resources leave generation unavailable with a local error. OS isolation is not a prerequisite or guarantee.
 
 Convenience scripts are also included:
 
@@ -56,7 +62,7 @@ If your PowerShell policy blocks local scripts, use the direct Python commands a
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-Tests use the standard-library `unittest` runner and Qt's bundled test utilities. They isolate storage in temporary directories, use Qt's offscreen platform by default, and mock hardware inventory. They cover settings round trips, validation, corruption/version handling, atomic-write failures, AMD/NVIDIA/Intel identification, multiple adapters, detection failures/timeouts, application initialization, navigation, disabled generation, autosave/privacy, button interactions, worker progress/errors/cancellation, GUI thread delivery, and closing while work is running.
+Tests use standard-library `unittest` and Qt's bundled test utilities. They isolate storage, use Qt's offscreen platform by default, and mock inference for routine UI tests. Coverage includes settings, hardware, navigation, readiness and button gating, actual-step progress delivery, cancellation/recovery, cleanup failures, output integrity, PNG export, and closing during work. The suite requires no GPU, model weights, or inference dependencies; static PNG fixtures are test data only.
 
 For a native Windows UI test run:
 
@@ -80,7 +86,7 @@ Stoneglass/
     stoneglass.log.1    # created when rotation is needed, up to .3
 ```
 
-Settings include window size/maximized state, sidebar collapse state, and generation dimensions, steps, guidance, and seed. Generation and sidebar preferences autosave after a short debounce; window size is saved at close. Prompts stay in memory for the current session and are never written to settings or application logs. No images or models are saved in Phase 1. There are no accounts, telemetry, subscriptions, cloud calls, or runtime downloads. The application performs one local Windows hardware inventory at startup, with a manual refresh available.
+Settings include window size/maximized state, sidebar collapse state, generation dimensions/steps/guidance/seed, and selected local model/manifest paths. Preferences autosave after a short debounce; window size saves at close. Prompts stay in memory for the session and are never written to settings or application logs. Generated PNGs remain under `generated/` in the application-data directory; export creates an additional user-selected copy. There are no accounts, telemetry, subscriptions, cloud calls, or runtime downloads. Windows hardware inventory runs locally at startup and can be refreshed. Explicit model validation probes the supported runtime in an owned child process; PyTorch never initializes in the UI process. Each generation uses a fresh worker and closes it before reporting completion.
 
 To choose another data directory for a session:
 
@@ -90,7 +96,7 @@ $env:STONEGLASS_DATA_DIR = Join-Path $PWD '.local-data'
 Remove-Item Env:\STONEGLASS_DATA_DIR
 ```
 
-Settings are validated and written using a same-directory temporary file and atomic replacement. An unreadable, damaged, or unsupported-version settings file is preserved; defaults are used and saving is blocked with a readable explanation. Close the app and rename that settings file to recover. A failed save appears in Settings/status and is reported on close. Startup storage errors and unexpected GUI exceptions have readable dialogs. Background failures are logged with tracebacks and delivered to the UI. Logs rotate at 2,000,000 bytes with three backups. They contain local diagnostics, without prompt contents.
+Settings are validated and written using a same-directory temporary file and atomic replacement. An unreadable, damaged, or unsupported-version settings file is preserved; defaults are used and saving is blocked with a readable explanation. Close the app and rename that settings file to recover. A failed save appears in Settings/status and is reported on close. Startup storage errors and unexpected GUI exceptions have readable dialogs. Background failures are delivered to the UI. Generic task errors retain tracebacks; inference adapter errors use safe codes and exception classes without adapter messages or chained tracebacks. Logs rotate at 2,000,000 bytes with three backups. They contain local diagnostics, without prompt contents.
 
 ## Project structure
 
@@ -104,6 +110,7 @@ Stoneglass/
   .gitignore
   .gitattributes
   docs/
+    INFERENCE_ARCHITECTURE.md  # Phase 2A boundaries, lifecycle, runtime selection
     UI_REFINEMENT.md           # refinement behavior, changed files, checks
     PUBLICATION_HYGIENE.md     # tracked files, ignore rules, and publication review
   licenses/
@@ -128,21 +135,32 @@ Stoneglass/
       settings.py             # versioned JSON and atomic persistence
       logging_setup.py        # console and rotating file diagnostics
       hardware.py             # Windows CIM inventory and vendor detection
+      inference.py            # serialized model ownership and cleanup
+      generation.py           # one generation transaction followed by worker cleanup
+      images.py               # bounded PNG validation and lossless export
     infrastructure/
       __init__.py
       workers.py              # owned Qt threads, signals, cancellation
+      inference_tasks.py      # background service calls through TaskManager
     inference/
       __init__.py
-      contracts.py            # future backend protocol; no implementation
+      contracts.py            # typed requests, models, runtimes, progress, protocols
+      errors.py               # prompt-safe typed errors
+      validation.py           # strict requests and local model references
+      runtime.py              # isolated detection and explicit device selection
+      _torch_probe.py         # optional child-process tensor validation
+      reviewed_profile.py     # explicit first UI checkpoint/resource fingerprints
     ui/
       __init__.py
       main_window.py          # navigation and service/task coordination
-      generate_page.py        # prompts, preferences, unavailable preview
+      generate_page.py        # prompts, preferences, generation/cancel/progress
+      generation_controller.py # GUI coordination over existing task/service contracts
+      models_page.py          # explicit local checkpoint and manifest selection
       dimension_controls.py   # synchronized presets and manual dimensions
-      image_preview.py        # empty viewport and future action integration points
+      image_preview.py        # fitted validated image and full-resolution PNG export
       sidebar.py              # branding, collapse preference, accessible navigation
       navigation_icons.py     # code-drawn navigation glyphs, separate from branding
-      placeholder_page.py     # Models and Gallery empty states
+      placeholder_page.py     # Gallery empty state
       settings_page.py        # hardware and local settings/status
       components.py           # shared view helpers
       theme.qss
@@ -157,14 +175,18 @@ Stoneglass/
     test_workers.py
     test_dimensions.py
     test_sidebar.py
+    inference_support.py      # mock-only fixtures; never generates images
+    test_inference_runtime.py
+    test_inference_service.py
+    test_inference_tasks.py
 ```
 
 ## Architecture
 
-`app.py` composes services and the Qt window. UI views consume plain domain types and application services. Domain types, storage, hardware detection, and the inference contract do not import Qt. The `infrastructure` package supplies the Qt task adapter; inference implementations will live only under `inference`, with no UI imports. No existing image-generation application is used as a backend.
+`app.py` composes services and the Qt window. UI views consume plain domain types and application services. Domain types, storage, hardware detection, and inference contracts do not import Qt. The `infrastructure` package supplies the Qt task adapter; production inference implementations live under `inference`, with no UI imports. No existing image-generation application is used as a backend.
 
-`TaskManager` owns a thread and handle for each operation. A `QThread.run()` override executes a plain callable; explicit queued signals deliver results, progress, cancellation, and readable failures to GUI-thread receivers. No worker updates widgets. An event-based context provides cooperative cancellation. Handles finish only after the thread stops, and the window defers closing asynchronously until all active tasks finish. Operations must use bounded I/O and check cancellation between stages. Windows inventory has a 15-second subprocess timeout. Future pipeline serialization and model lifecycle policy belong to the inference service, once that phase is approved.
+`TaskManager` owns a thread and handle for each operation. A `QThread.run()` override executes a plain callable; explicit queued signals deliver results, progress, cancellation, and readable failures to GUI-thread receivers. No worker updates widgets. An event-based context provides cooperative cancellation. Handles finish only after the thread stops, and the window defers closing asynchronously until all active tasks and required model cleanup finish. Operations use bounded I/O and check cancellation between stages. Windows inventory has a 15-second subprocess timeout. The Qt-free `InferenceService` rejects overlapping operations and coordinates ownership/cleanup. `InferenceTasks` reuses the existing manager. The application registers the reviewed local SDXL provider but does not probe or load at startup. Generation runs in an owned process and closes it after each request.
 
 Hardware detection runs `Get-CimInstance Win32_VideoController` through built-in Windows PowerShell, without a shell command assembled from user data. PCI vendor IDs identify AMD, NVIDIA, and Intel, with name/manufacturer fallback. It supports multiple display adapters and treats unknown/basic drivers honestly. It does not import or probe CUDA, and adapter presence does not imply compute support. VRAM is intentionally left unreported: the inventory's 32-bit `AdapterRAM` field cannot reliably describe modern 16/24 GB GPUs. Detection failure remains nonfatal. See Microsoft's [Win32_VideoController reference](https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/win32-videocontroller) and Qt's [QThread reference](https://doc.qt.io/qtforpython-6/PySide6/QtCore/QThread.html).
 
-The RX 9060 XT and future RTX 3090 can be inventoried with the same service. Choosing and validating their Windows compute runtimes, installing PyTorch/Diffusers, adding model loading, and implementing real generation are **deferred until Phase 2 is approved**. Phase 1 does not select a GPU backend or claim inference compatibility.
+The RX 9060 XT and future RTX 3090 can be inventoried with the same hardware service. Runtime probing checks the actual installed PyTorch build and per-device tensor operations. HIP is reported as ROCm even though PyTorch uses its CUDA API. The initial UI additionally requires the separately validated RX 9060 XT runtime/model profile. Generic contracts retain CUDA and opt-in CPU support for future adapters; NVIDIA, CPU and LCM generation are not enabled in this UI. No runtime, inference library or model is installed automatically. See [architecture history](docs/INFERENCE_ARCHITECTURE.md) and [current UI integration](docs/STAGE3_UI.md).

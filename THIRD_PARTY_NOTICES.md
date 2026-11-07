@@ -1,6 +1,6 @@
 # Third-party attribution and license inventory
 
-This document records dependencies for the **Phase 1 source repository**. Review baseline: **2026-11-06**, Windows 11, CPython 3.13.12, PySide6-Essentials 6.12.0, Shiboken6 6.12.0, pip 25.3. The application requirement permits `PySide6-Essentials>=6.8,<7`; this inventory does not certify every version allowed by that range. Setuptools is resolved in an isolated build environment and is not an application runtime dependency.
+This document records dependencies for the **Stoneglass source repository through Stage 3.1**. Review baseline: **2026-11-06**, Windows 11, CPython 3.13.12, PySide6-Essentials 6.12.0, Shiboken6 6.12.0, pip 25.3. The application requirement permits `PySide6-Essentials>=6.8,<7`; this inventory does not certify every version allowed by that range. Setuptools is resolved in an isolated build environment and is not an application runtime dependency.
 
 Original Stoneglass code and documentation propose `GPL-3.0-or-later`. That declaration does **not** relicense dependencies, upstream notices, system components, the supplied branding, or the GNU license texts themselves. This checkout does not vendor third-party implementation code, Qt/Python binaries, fonts, or models. It includes the project-supplied logomark documented below. Package installation downloads dependencies separately into the ignored virtual environment.
 
@@ -67,9 +67,44 @@ for name in ("PySide6-Essentials", "shiboken6"):
 
 Windows 11, built-in Windows PowerShell/CIM, and Segoe UI are host-provided platform components. Their software/font rights remain with their owners. Stoneglass invokes local hardware inventory and refers to an installed font by family name; it does not redistribute those components. Source-control and editor tools are not bundled with the application.
 
-## Future dependencies and distribution review
+## Optional inference dependencies and attribution
 
-PyTorch, Hugging Face Diffusers, GPU runtimes, model weights, and model licenses are **not part of Phase 1**. No license for future models or generated output is granted or implied by the project license. ComfyUI, Automatic1111, Forge, and other image-generation applications are neither dependencies nor backends.
+The GUI dependency declarations remain unchanged. An independently installed,
+reviewed development runtime uses the components below; none of their code,
+wheels, binaries, configuration/tokenizer bundles or model weights are vendored
+in this source repository. Versions describe the tested profile, not an automatic
+installer or redistribution approval. Attribution belongs to the upstream projects
+and their respective contributors/rights holders.
+
+| Component / reviewed version | Attribution and observed licensing scope |
+| --- | --- |
+| PyTorch 2.13.0+rocm10.0.0 | [PyTorch contributors](https://github.com/pytorch/pytorch). Installed license expression: `Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND MIT`; numerous embedded components carry their own notices. |
+| Torchvision 0.28.0+rocm10.0.0 | [Torchvision contributors](https://github.com/pytorch/vision); installed license metadata says BSD, with a retained LICENSE in the external package. |
+| Diffusers 0.40.0 / Transformers 5.16.1 | Hugging Face and contributors; Apache 2.0. [Diffusers license](https://github.com/huggingface/diffusers/blob/v0.40.0/LICENSE), [Transformers license](https://github.com/huggingface/transformers/blob/v5.16.1/LICENSE). |
+| Accelerate 1.15.0 / Hugging Face Hub 1.30.0 | Hugging Face and contributors; installed metadata reports Apache / Apache-2.0, respectively. [Accelerate source](https://github.com/huggingface/accelerate), [Hub source](https://github.com/huggingface/huggingface_hub). |
+| Safetensors 0.8.0 / Tokenizers 0.23.2 | Hugging Face and contributors. License metadata is absent in the reviewed installs; Safetensors declares a LICENSE file. Review the exact source/artifact terms before redistribution. [Safetensors versioned license](https://github.com/huggingface/safetensors/blob/v0.8.0/LICENSE), [Tokenizers source](https://github.com/huggingface/tokenizers). |
+| NumPy 2.5.2 | NumPy and incorporated-component contributors. Installed expression: `BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0`; embedded component notices remain separate. [NumPy source](https://github.com/numpy/numpy). |
+| Pillow 12.3.0 | Pillow/PIL contributors; installed expression MIT-CMU. [Pillow source](https://github.com/python-pillow/Pillow). |
+| ROCm SDK / device packages 10.0.0, bootstrap 0.1.0 and matching AMD Torch device packages | AMD and upstream component contributors. Several reviewed SDK/device artifacts lack complete package license metadata/notices. Obtain exact artifact/component terms and required source/notices before any redistribution. [ROCm licensing](https://rocm.docs.amd.com/en/latest/about/license.html). |
+
+This table is a direct-dependency/project inventory, not a complete transitive SBOM
+or binary-distribution sign-off. The private runtime assessment reviewed installed
+metadata and available notices; no dependency artifact is approved for bundling by
+this table. Preserve exact notices and review all transitive/native components if
+the distribution contents change. The existing Qt notice discrepancy remains open
+for dependency/binary redistribution. Source-only Stoneglass publication does not
+ship those implementations or artifacts.
+
+The first tested checkpoint is AlbedoBase XL v3.1-Large by albedobond. Its model
+terms are separate from GPL source licensing: see [publisher/version and credit](https://civitai.com/models/140737?modelVersionId=1041855),
+[original model license](https://civitai.com/models/license/1041855), and
+[the Stage 2 provenance review](docs/LOCAL_INFERENCE_STAGE2.md). No weights or
+third-party configuration/tokenizer resources are redistributed. No license for
+models or generated output is granted or implied by Stoneglass's project license.
+ComfyUI, Automatic1111, Forge, and other image-generation applications are neither
+dependencies nor backends.
+
+## Distribution review
 
 Before a public release, maintainers will review the exact source/artifact contents and versioned dependency notices. A source-only Stoneglass distribution and a Windows bundle containing Python/Qt have different contents: any bundled dependency must retain its required notices and license texts, and applicable source, modification, replacement/relinking, and other distribution requirements must be addressed under the chosen terms. Record upstream source locations and changes for the exact versions shipped; a documentation link alone is not a substitute for required corresponding source. Qt's [software bill of materials documentation](https://doc.qt.io/qt-6/sbom.html) can help identify embedded components.
 

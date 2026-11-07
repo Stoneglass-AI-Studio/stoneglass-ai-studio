@@ -3,10 +3,11 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QDoubleSpinBox, QGridLayout, QPlainTextEdit,
-    QPushButton, QScrollArea, QSpinBox, QSplitter, QVBoxLayout, QWidget,
+    QPushButton, QScrollArea, QSpinBox, QSplitter, QVBoxLayout, QWidget, QHBoxLayout, QProgressBar,
 )
 
 from stoneglass.domain.settings import GenerationSettings
+from stoneglass.inference.contracts import GenerationRequest, InferenceStatus
 from stoneglass.ui.components import card, label, page_header
 from stoneglass.ui.dimension_controls import DimensionControls
 from stoneglass.ui.image_preview import ImagePreview
@@ -14,6 +15,7 @@ from stoneglass.ui.image_preview import ImagePreview
 
 class GeneratePage(QWidget):
     preferences_changed = Signal()
+    select_model_requested = Signal()
 
     def __init__(self, settings: GenerationSettings) -> None:
         super().__init__()
@@ -47,7 +49,7 @@ class GeneratePage(QWidget):
         settings_card, settings_layout = card()
         settings_layout.addWidget(label("Generation settings", "sectionTitle", True))
         settings_layout.addWidget(label(
-            "Saved locally for a future inference backend.", "muted", True
+            "Saved locally · SDXL profile: batch 1, up to 1,048,576 pixels.", "muted", True
         ))
         form = QGridLayout()
         form.setHorizontalSpacing(12)
@@ -83,15 +85,31 @@ class GeneratePage(QWidget):
         column.addStretch()
         scroll.setWidget(controls)
         panel_layout.addWidget(scroll, 1)
-        self.generate_button = QPushButton("Generate · unavailable")
+        self.model_status = label("Select and validate a local model in Models.", "muted", True)
+        panel_layout.addWidget(self.model_status)
+        self.select_model_button = QPushButton("Select model…")
+        self.select_model_button.clicked.connect(self.select_model_requested)
+        panel_layout.addWidget(self.select_model_button)
+        self.generate_button = QPushButton("Generate")
         self.generate_button.setObjectName("primary")
         self.generate_button.setMinimumHeight(46)
         self.generate_button.setEnabled(False)
-        self.generate_button.setToolTip("Inference is not implemented in Phase 1.")
-        panel_layout.addWidget(self.generate_button)
-        panel_layout.addWidget(label(
-            "Phase 1 · Model loading and image generation are not available yet.", "muted", True
-        ))
+        self.generate_button.setShortcut("Ctrl+Return")
+        self.generate_button.setToolTip("Select and validate a supported local model first.")
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setEnabled(False)
+        actions = QHBoxLayout()
+        actions.addWidget(self.generate_button, 1); actions.addWidget(self.cancel_button)
+        panel_layout.addLayout(actions)
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setAccessibleName("Generation progress")
+        self.progress_bar.hide()
+        panel_layout.addWidget(self.progress_bar)
+        self.inference_status = label("", "muted", True)
+        self.inference_status.setTextFormat(Qt.TextFormat.PlainText)
+        self.model_status.setTextFormat(Qt.TextFormat.PlainText)
+        panel_layout.addWidget(self.inference_status)
+        self.set_inference_status(InferenceStatus())
         splitter.addWidget(panel)
 
         self.preview = ImagePreview()
@@ -129,3 +147,18 @@ class GeneratePage(QWidget):
             "steps": self.steps.value(), "guidance": self.guidance.value(),
             "seed": self.seed.value(),
         })
+
+    def generation_request(self, model_id: str | None = None) -> GenerationRequest:
+        """Snapshot session-only prompts for the controller; never persist them."""
+        return GenerationRequest(
+            self.positive_prompt.toPlainText(), self.negative_prompt.toPlainText(),
+            self.preferences(), model_id,
+        )
+
+    def set_inference_status(self, status: InferenceStatus) -> None:
+        # Engine status alone never authorizes generation. The controller also
+        # requires a matching validated selection, request and idle task state.
+        if status.error:
+            self.inference_status.setText(status.error.message)
+        elif not self.inference_status.text():
+            self.inference_status.setText("Ready for local model selection.")

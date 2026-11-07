@@ -2,7 +2,7 @@
 
 Public GitHub publication is a separate maintainer decision. No repository is
 created remotely, uploaded, or made public by these guidelines or the local audit.
-Development remains within Phase 1.
+The current source baseline includes Stage 3.1. Keep private evidence, runtime artifacts and model data separate from source-only updates.
 
 ## What belongs in source control
 

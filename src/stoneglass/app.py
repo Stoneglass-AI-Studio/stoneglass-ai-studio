@@ -54,7 +54,7 @@ def build_window(
     resolved_paths = paths or AppPaths.discover()
     resolved_paths.ensure()
     configure_logging(resolved_paths.log_dir)
-    logger.info("Starting Stoneglass %s; inference is unavailable", __version__)
+    logger.info("Starting Stoneglass %s; local SDXL requires explicit model validation", __version__)
     return MainWindow(
         ApplicationServices.create(resolved_paths), start_hardware_scan=start_hardware_scan
     )

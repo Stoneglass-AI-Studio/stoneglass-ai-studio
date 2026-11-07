@@ -1,5 +1,9 @@
 # Phase 1 UI refinement
 
+> Historical phase record. Current runtime/UI behavior and accepted offline scope
+> are documented in [Stage 3](STAGE3_UI.md) and [Stage 3.1](OFFLINE_UI_ACCEPTANCE.md).
+> Earlier unavailable features and security gates below describe that phase only.
+
 PySide6, the dark theme, the two-column Generate layout, and the UI/service/inference boundaries are retained. No inference code, GPU runtime, new runtime dependency, runtime network service, or publication is introduced by this refinement.
 
 ## Behavior

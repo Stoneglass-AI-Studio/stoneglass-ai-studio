@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 from stoneglass.domain.hardware import HardwareReport
 from stoneglass.domain.settings import AppSettings
 from stoneglass.infrastructure.workers import TaskManager, WorkerContext
+from stoneglass.infrastructure.inference_tasks import InferenceTasks
 from stoneglass.services.application import ApplicationServices
 from stoneglass.services.settings import SettingsError
 from stoneglass.ui.components import label
@@ -19,6 +20,8 @@ from stoneglass.ui.generate_page import GeneratePage
 from stoneglass.ui.placeholder_page import PlaceholderPage
 from stoneglass.ui.settings_page import SettingsPage
 from stoneglass.ui.sidebar import Sidebar
+from stoneglass.ui.models_page import ModelsPage
+from stoneglass.ui.generation_controller import GenerationController
 
 logger = logging.getLogger(__name__)
 
@@ -50,16 +53,13 @@ class MainWindow(QMainWindow):
 
         self.pages = QStackedWidget()
         self.generate_page = GeneratePage(self.settings.generation)
-        self.models_page = PlaceholderPage(
-            "Models", "Your future local model library.", "No models loaded",
-            "Model discovery, loading, and management are not implemented in Phase 1. "
-            "Stoneglass has not downloaded any models. The future Python inference engine "
-            "will be part of Stoneglass itself.",
-        )
+        self.inference_tasks = InferenceTasks(services.inference, self.tasks, self)
+        self.inference_tasks.status_changed.connect(self.generate_page.set_inference_status)
+        self.models_page = ModelsPage(self.settings.model_path, self.settings.resource_manifest_path,
+                                     services.project / ".local-data/sdxl-bundles/base-initial/manifest.json")
         self.gallery_page = PlaceholderPage(
             "Gallery", "A home for images created on your machine.", "Nothing here yet",
-            "Image generation, gallery indexing, and image browsing are unavailable in Phase 1. "
-            "Your preview remains empty until a future inference backend produces an image.",
+            "Gallery indexing and browsing are not available yet. Generated PNGs remain in local storage and can be exported from Generate.",
         )
         self.settings_page = SettingsPage(services.paths)
         for page in (
@@ -70,6 +70,9 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
         self.navigation.currentRowChanged.connect(self.pages.setCurrentIndex)
         self.navigation.setCurrentRow(0)
+        self.generate_page.select_model_requested.connect(lambda: self.navigation.setCurrentRow(1))
+        self.generation_controller = GenerationController(self.inference_tasks, self.tasks, self.generate_page, self.models_page, self)
+        self.generation_controller.status_message.connect(self.statusBar().showMessage)
 
         self._save_timer = QTimer(self)
         self._save_timer.setSingleShot(True)
@@ -77,10 +80,13 @@ class MainWindow(QMainWindow):
         self._save_timer.timeout.connect(self.save_preferences)
         self.generate_page.preferences_changed.connect(self._schedule_save)
         self.sidebar.collapsed_changed.connect(self._schedule_save)
+        self.generation_controller.selection_changed.connect(self._schedule_save)
+        self.generation_controller.selection_changed.connect(self._show_runtime_readiness)
+        self.tasks.idle.connect(self._show_runtime_readiness)
         self.settings_page.save_requested.connect(self.save_preferences)
         self.settings_page.rescan_requested.connect(self.scan_hardware)
 
-        self.statusBar().showMessage("Ready · Inference unavailable in Phase 1")
+        self.statusBar().showMessage("Ready · Select and validate a local model in Models")
         self.statusBar().addPermanentWidget(label("OFFLINE · LOCAL", "muted"))
         if services.settings.warning:
             self.settings_page.save_status.setText(services.settings.warning)
@@ -89,6 +95,15 @@ class MainWindow(QMainWindow):
             QTimer.singleShot(0, self.scan_hardware)
         else:
             self.settings_page.hardware_details.setText("Hardware detection has not run.")
+
+    @Slot()
+    def _show_runtime_readiness(self) -> None:
+        ready = self.generation_controller.ready
+        backend = {"rocm": "ROCm", "cuda": "CUDA", "cpu": "CPU"}[ready.runtime.kind.value] if ready else ""
+        self.settings_page.compute_backend.setText(
+            f"Validated {backend} · {ready.runtime.name} · Worker closes after each generation"
+            if ready else "Not validated · Select a local model in Models"
+        )
 
     @Slot()
     def _schedule_save(self) -> None:
@@ -101,6 +116,8 @@ class MainWindow(QMainWindow):
             "maximized": self.isMaximized(),
             "sidebar_collapsed": self.sidebar.collapsed,
             "generation": asdict(self.generate_page.preferences()),
+            "model_path": self.models_page.checkpoint.text(),
+            "resource_manifest_path": self.models_page.manifest.text(),
         })
 
     @Slot()
@@ -156,6 +173,12 @@ class MainWindow(QMainWindow):
         if self._closing:
             QTimer.singleShot(0, self.close)
 
+    @Slot(str)
+    def _inference_shutdown_failed(self, message: str) -> None:
+        self._closing = False
+        self.centralWidget().setEnabled(True)
+        self.statusBar().showMessage(f"{message} Close the window again to retry cleanup.")
+
     def closeEvent(self, event: QCloseEvent) -> None:
         self._save_timer.stop()
         if self.tasks.busy:
@@ -163,6 +186,14 @@ class MainWindow(QMainWindow):
             self.tasks.cancel_all()
             self.centralWidget().setEnabled(False)
             self.statusBar().showMessage("Closing · Waiting for the background task to finish…")
+            event.ignore()
+            return
+        if self.services.inference.requires_cleanup:
+            self._closing = True
+            self.centralWidget().setEnabled(False)
+            self.statusBar().showMessage("Closing · Releasing inference resources…")
+            handle = self.inference_tasks.shutdown()
+            handle.failed.connect(self._inference_shutdown_failed)
             event.ignore()
             return
         self.save_preferences()
