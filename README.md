@@ -8,15 +8,17 @@ Stoneglass is independent of ComfyUI, Automatic1111, Forge, and other image-gene
 
 ## Desktop interface
 
-The sidebar uses the existing project-supplied logomark beside one application name. Its expanded width is 192 logical pixels; collapse it to 68 with the **Collapse** control or **Ctrl+B**. The choice saves locally. Collapsed navigation keeps tooltips and accessible names, and arrow-key navigation continues to work. If the mark is unavailable, text branding remains. See the [branding asset notes](src/stoneglass/ui/assets/README.md) for the packaged asset path and fallback.
+Stoneglass features a desktop interface designed for local AI image generation.
 
-Generate retains a two-column editor/preview layout. Resolution presets include **512×512, 768×1024, 1024×768, and 1024×1024**. Aspect choices are **1:1, 3:2, 2:3, 16:9, and 9:16**. Both selectors change only width and height; prompts, steps, guidance, seed, and other preferences remain unchanged. Aspect choices keep an exact ratio on the existing 64 px grid and choose the closest pixel count **up to 1,048,576 pixels (the area of 1024×1024)**. They do not automatically select a large size just because manual dimensions were large. The largest automatic choices are 1024×1024, 1152×768, 768×1152, 1024×576, and 576×1024 respectively. Very small inputs may need to grow to fit an exact ratio on the grid.
+- **Image generation:** Enter prompts and adjust resolution, aspect ratio, sampling steps, guidance, and seed.
+- **Flexible dimensions:** Choose from common resolution presets, select an aspect ratio, or enter custom dimensions.
+- **Image preview:** View generated images directly in the application.
+- **PNG export:** Save generated images at their original resolution without quality loss.
+- **Model management:** Select and validate locally installed models.
+- **Hardware information:** View detected GPU and system information.
+- **Customizable workspace:** Collapsible sidebar, persistent preferences, and keyboard navigation.
 
-Manual dimensions still support 256–2048 px per side and round down to the grid when committed. The automatic aspect budget is applied only when a preset is selected: valid manual dimensions are preserved across page/sidebar changes and application restarts, including larger manual sizes that match a listed aspect. Each selector shows **Custom** when the dimensions do not match its choices; a named resolution may still have a Custom aspect if that ratio is not listed. The saved dimensions determine preset labels after restart. This UI budget does not establish a future model's VRAM requirements.
-
-The preview starts empty and displays a validated image after generation and owned-worker cleanup. It fits the image to the viewport without changing the full-resolution PNG. **Save PNG** exports the original bytes. Zoom and editing remain future work. Settings separates operating system, compute status, GPU name/vendor/driver, and unreported VRAM, with selectable, wrapping storage paths. **Save preferences** remains outside the scrolling content.
-
-See [UI refinement notes](docs/UI_REFINEMENT.md) for changed files, validation, and current limits.
+For detailed interface behavior, supported dimensions, and implementation notes, see the [UI refinement documentation](docs/UI_REFINEMENT.md).
 
 ## Project status and license
 
