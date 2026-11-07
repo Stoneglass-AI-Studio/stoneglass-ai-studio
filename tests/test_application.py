@@ -91,7 +91,7 @@ class ApplicationTests(unittest.TestCase):
         self.assertEqual(fields.driver.text(), "Unknown")
         self.assertEqual(self.window.settings_page.operating_system.text(), "Windows 11")
         self.assertEqual(self.window.settings_page.vram_status.text(), "Not reported")
-        self.assertIn("Not configured", self.window.settings_page.compute_backend.text())
+        self.assertIn("Not validated", self.window.settings_page.compute_backend.text())
         self.assertTrue(self.window.settings_page.rescan_button.isEnabled())
 
     def test_sidebar_keyboard_toggle_preserves_navigation_and_focus(self) -> None:
@@ -175,7 +175,7 @@ class ApplicationTests(unittest.TestCase):
                 self.assertTrue(self.window.rect().contains(origin + button.rect().bottomRight()))
         self.assertFalse(self.window.generate_page.generate_button.isEnabled())
         self.assertTrue(self.window.generate_page.preview.toolbar.isHidden())
-        self.assertEqual(self.window.generate_page.preview.toolbar.actions(), [])
+        self.assertFalse(self.window.generate_page.preview.save_action.isEnabled())
 
     def test_long_storage_paths_wrap_without_horizontal_scrolling(self) -> None:
         self.window.resize(960, 640)

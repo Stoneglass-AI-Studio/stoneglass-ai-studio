@@ -11,15 +11,20 @@ from uuid import uuid4
 
 from PySide6.QtCore import QObject, QThread, Qt, Signal, Slot
 
-from stoneglass.inference.contracts import TaskCancelled
+from stoneglass.inference.contracts import ProgressEvent, TaskCancelled
+from stoneglass.inference.errors import InferenceError
 
 logger = logging.getLogger(__name__)
 
 
 class WorkerContext:
-    def __init__(self, cancel: Event, progress: Callable[[int, str], None]) -> None:
+    def __init__(
+        self, cancel: Event, progress: Callable[[int, str], None],
+        events: Callable[[ProgressEvent], None] | None = None,
+    ) -> None:
         self._cancel = cancel
         self._progress = progress
+        self._events = events
 
     def check_cancelled(self) -> None:
         if self._cancel.is_set():
@@ -29,12 +34,19 @@ class WorkerContext:
         self.check_cancelled()
         self._progress(max(0, min(100, percent)), message)
 
+    def report_event(self, event: ProgressEvent) -> None:
+        self.report_progress(event.percent, event.message)
+        if self._events is not None:
+            self._events(event)
+
 
 class TaskHandle(QObject):
     succeeded = Signal(object)
     failed = Signal(str)
     cancelled = Signal()
     progress = Signal(int, str)
+    progress_event = Signal(object)
+    error = Signal(object)
     finished = Signal()
 
     def __init__(self, cancellation: Event, parent: QObject) -> None:
@@ -50,22 +62,32 @@ class _TaskThread(QThread):
     failed = Signal(str)
     cancelled = Signal()
     progress = Signal(int, str)
+    progress_event = Signal(object)
+    error = Signal(object)
     def __init__(
         self, operation: Callable[[WorkerContext], Any], cancel: Event, parent: QObject,
+        check_cancellation: bool = True,
     ) -> None:
         super().__init__(parent)
         self._operation = operation
         self._cancel = cancel
+        self._check_cancellation = check_cancellation
 
     def run(self) -> None:
-        context = WorkerContext(self._cancel, self.progress.emit)
+        context = WorkerContext(self._cancel, self.progress.emit, self.progress_event.emit)
         try:
-            context.check_cancelled()
+            if self._check_cancellation:
+                context.check_cancelled()
             result = self._operation(context)
-            context.check_cancelled()
+            if self._check_cancellation:
+                context.check_cancelled()
             self.succeeded.emit(result)
         except TaskCancelled:
             self.cancelled.emit()
+        except InferenceError as exc:
+            logger.error("Background inference operation failed [%s]", exc.info.code.value)
+            self.error.emit(exc.info)
+            self.failed.emit(str(exc))
         except Exception as exc:
             logger.exception("Background operation failed")
             self.failed.emit(f"{type(exc).__name__}: {exc}")
@@ -95,17 +117,23 @@ class TaskManager(QObject):
     def busy(self) -> bool:
         return bool(self._jobs)
 
-    def start(self, name: str, operation: Callable[[WorkerContext], Any]) -> TaskHandle:
+    def start(
+        self, name: str, operation: Callable[[WorkerContext], Any], *, check_cancellation: bool = True,
+    ) -> TaskHandle:
+        # Inference owns its cancellation/commit boundaries, including mandatory
+        # cleanup. Generic jobs retain the original pre/post cancellation checks.
         job_id = uuid4().hex
         cancellation = Event()
         handle = TaskHandle(cancellation, self)
-        thread = _TaskThread(operation, cancellation, self)
+        thread = _TaskThread(operation, cancellation, self, check_cancellation)
         thread.setObjectName(name)
         thread.setProperty("job_id", job_id)
         thread.succeeded.connect(handle.succeeded, Qt.ConnectionType.QueuedConnection)
         thread.failed.connect(handle.failed, Qt.ConnectionType.QueuedConnection)
         thread.cancelled.connect(handle.cancelled, Qt.ConnectionType.QueuedConnection)
         thread.progress.connect(handle.progress, Qt.ConnectionType.QueuedConnection)
+        thread.progress_event.connect(handle.progress_event, Qt.ConnectionType.QueuedConnection)
+        thread.error.connect(handle.error, Qt.ConnectionType.QueuedConnection)
         thread.finished.connect(self._on_thread_finished)
         self._jobs[job_id] = _Job(thread, handle)
         thread.start()

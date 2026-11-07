@@ -48,7 +48,7 @@ class SettingsPage(QWidget):
         content.addWidget(self.hardware_details)
         system = QGridLayout()
         self.operating_system = self._field(system, 0, "Operating system", "Not detected")
-        self.compute_backend = self._field(system, 1, "Compute backend", "Not configured · Phase 1")
+        self.compute_backend = self._field(system, 1, "Compute backend", "Not validated · Select a local model in Models")
         self.vram_status = self._field(system, 2, "VRAM", "Not reported")
         content.addLayout(system)
         self.gpu_container = QWidget()
@@ -69,6 +69,7 @@ class SettingsPage(QWidget):
         self.path_values: dict[str, QLabel] = {}
         for name, path in (
             ("Application data", paths.root), ("Settings file", paths.settings_file), ("Logs", paths.log_dir),
+            ("Generated images", paths.root / "generated"),
         ):
             content.addWidget(label(name, "fieldLabel"))
             value = selectable_value(str(path), name)
@@ -83,10 +84,10 @@ class SettingsPage(QWidget):
         column.addWidget(storage)
 
         future, content = card()
-        content.addWidget(label("Inference configuration · unavailable", "sectionTitle"))
+        content.addWidget(label("Advanced inference configuration · unavailable", "sectionTitle", True))
         content.addWidget(label(
-            "GPU-specific compute runtimes, model paths, memory policies, and sampler selection "
-            "are reserved for a later phase. No inference backend is currently available.", "muted", True
+            "Select and validate the reviewed local SDXL profile in Models. Additional hardware "
+            "profiles, memory policies, and sampler selection are reserved for a later phase.", "muted", True
         ))
         column.addWidget(future)
         column.addStretch()

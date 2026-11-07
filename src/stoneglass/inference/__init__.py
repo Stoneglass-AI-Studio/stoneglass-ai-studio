@@ -1,3 +1,3 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-"""Future Python inference adapters belong here. No backend is installed in Phase 1."""
+"""Local inference contracts and runtime detection; no production backend in Phase 2A."""

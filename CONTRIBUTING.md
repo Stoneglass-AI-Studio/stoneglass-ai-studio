@@ -1,15 +1,15 @@
 # Contributing to Stoneglass
 
-Stoneglass is a free and open-source, local-first image studio for Windows 11. The proposed project license is **GPL-3.0-or-later**. The repository is being prepared for public GitHub development and has not been approved for publication or a first release. Until then, share changes through the project's existing private review process. Do not create a public mirror, push this checkout to a public remote, or upload release artifacts on the project's behalf.
+Stoneglass is a free and open-source, local-first image studio for Windows 11. The project license is **GPL-3.0-or-later**. The source repository is [Stoneglass-AI-Studio/stoneglass-ai-studio](https://github.com/Stoneglass-AI-Studio/stoneglass-ai-studio). Development work in another checkout is not automatically approved for upload: maintainers review code, privacy and licensing before pushing changes or distributing release artifacts on the project's behalf.
 
 ## Current scope
 
-Work is limited to **Phase 1: Application Foundation**. Improvements to the desktop shell, accessibility, preferences, logging, hardware inventory, worker lifecycle, tests, documentation, and licensing fit this phase. Phase 2 needs explicit project approval before implementation.
+The current baseline includes **Stage 3.1: reviewed local SDXL UI integration and operator-run offline acceptance** for the documented RX 9060 XT profile. Stage 4A has not begun. Preserve the existing architecture, local-only loading, validated model/resource/runtime gates, bounded worker protocol, cancellation and owned-process cleanup. See [current UI behavior](docs/STAGE3_UI.md), [offline UI acceptance](docs/OFFLINE_UI_ACCEPTANCE.md), and [architecture history](docs/INFERENCE_ARCHITECTURE.md).
 
 Keep these project constraints:
 
-- Use Stoneglass's own future Python inference engine. Do not add ComfyUI, Automatic1111, Forge, or another image-generation application as a backend.
-- Do not install or configure PyTorch/Diffusers, choose a GPU compute backend, download models, load models, or implement image generation in Phase 1.
+- Use Stoneglass's own Python inference engine. Do not add ComfyUI, Automatic1111, Forge, or another image-generation application as a backend.
+- Keep GUI setup separate from optional GPU environments. Do not silently install/upgrade runtimes, download models, or weaken offline/resource checks. Routine tests use mocks and static fixtures; real GPU/model experiments require an agreed scope and must preserve existing environments and data. Inventory alone does not establish compute compatibility.
 - Keep unavailable functionality visibly labeled. Do not simulate successful generation or populate the gallery with pretend output.
 - Preserve local storage and privacy-first defaults. Do not add telemetry, accounts, subscriptions, cloud APIs, or runtime downloads.
 - Prefer free and open-source dependencies and the Python standard library. Explain the need, attribution, license, and effect on installation size for any dependency change.
@@ -36,7 +36,7 @@ Remove-Item Env:\STONEGLASS_DATA_DIR
 
 ## Code and review guidelines
 
-Use typed Python, descriptive names, small modules, and clear errors. Follow the existing style. Keep domain types and application services independent of Qt. Keep Qt views in `ui`, threading adapters in `infrastructure`, and future inference code in `inference`. New original source files should carry `SPDX-License-Identifier: GPL-3.0-or-later` in a language-appropriate comment. Preserve upstream notices on imported material instead of replacing them with the project identifier.
+Use typed Python, descriptive names, small modules, and clear errors. Follow the existing style. Keep domain types and application services independent of Qt. Keep Qt views in `ui`, threading adapters in `infrastructure`, and inference code in `inference`. New original source files should carry `SPDX-License-Identifier: GPL-3.0-or-later` in a language-appropriate comment. Preserve upstream notices on imported material instead of replacing them with the project identifier.
 
 Only the GUI thread may update widgets. Route blocking work through the worker architecture, use bounded I/O and cooperative cancellation, and retain workers until they finish. Never terminate a running thread forcibly. Identify adapters without assuming CUDA exists; distinguish hardware inventory from compute support.
 
@@ -63,4 +63,4 @@ Submit only work you have the right to contribute. Contributions intended for in
 
 Update [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) when adding or changing dependencies or bundled assets. Check the actual version's metadata and shipped notices, including transitive and embedded components. Do not assume every Qt component, model weight, example, or image uses the same license. Review compatibility with the proposed project license before accepting third-party code. Preserve required license texts and notices in any distribution that includes those components.
 
-Before redistributing dependency artifacts, vendored implementations, or a packaged application, resolve the Qt notice review documented in the third-party inventory and review the exact components to be distributed. The current source-only repository does not include Qt/PySide/Shiboken implementations or binaries, so that artifact review does not itself block source publication. Publishing, release uploads, and repository visibility changes remain separate maintainer decisions. These contribution guidelines describe the project's current private workflow; they do not add restrictions to rights granted by the GPL for licensed copies.
+Before redistributing dependency artifacts or packaged applications, resolve the Qt/ROCm notice reviews and review the exact contents to be distributed. Source-only publication, packaged releases and repository visibility changes are separate maintainer decisions. These contribution guidelines do not add restrictions to rights granted by the GPL for licensed copies.
