@@ -1,10 +1,12 @@
 # Stoneglass
 
-Stoneglass is a free and open-source, standalone, local-first Windows 11 desktop image studio. **This development checkout connects the PySide6 interface to Stoneglass's own local SDXL inference worker.** The initial profile supports the reviewed AlbedoBase XL v3.1-Large checkpoint, its exact local resource bundle, and the validated RX 9060 XT ROCm environment.
+Stoneglass is a free, open-source AI image-generation studio for Windows 11. Designed for privacy and independence, it generates images directly on your computer without requiring cloud services, subscriptions, or user accounts.
 
-The dark PySide6 interface includes Generate, Models, Gallery, and Settings. Select the checkpoint and matching manifest in Models, then choose **Validate model**. Generate becomes available only after local resources and the supported runtime pass validation. Progress, cancellation, fitted image preview, and full-resolution PNG export use the production worker. Gallery indexing and additional model/hardware profiles remain unavailable. There is no simulated image generation.
+With an intuitive desktop interface, Stoneglass lets you manage local AI models, customize generation settings, monitor progress, preview results, and export full-resolution images.
 
-Stoneglass is independent of ComfyUI, Automatic1111, Forge, and other image-generation applications. It does not use them as backends. Inference will run through Stoneglass's own engine, on your machine, without accounts or a cloud service.
+Unlike frontends built around ComfyUI, Automatic1111, or Forge, Stoneglass uses its own local inference engine. Once the required models and dependencies are installed, image generation works entirely offline.
+
+**Current development status:** Stoneglass is in active development, with initial SDXL support validated on a specific AMD Radeon GPU configuration. Additional models, hardware compatibility, and features are planned.
 
 ## Desktop interface
 
