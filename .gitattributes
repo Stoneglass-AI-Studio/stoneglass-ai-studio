@@ -1,0 +1,9 @@
+# Keep source and official license texts consistent across Windows checkouts.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary

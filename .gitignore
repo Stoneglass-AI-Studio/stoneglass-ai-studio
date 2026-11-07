@@ -1,0 +1,153 @@
+# Rules protect untracked files only. They do not remove tracked files, existing
+# Git objects, snapshots, or history. Review the staged diff before any commit.
+
+# Python, compiled extensions, packaging, and virtual environments
+# Ordinary build/env names are root-scoped so application modules with those
+# names remain trackable under src/, tests/, and docs/. Use .venv for environments.
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+*.dll
+*.exe
+*.whl
+*.egg
+*.egg-info/
+.eggs/
+/build/
+/dist/
+.venv/
+.venv-*/
+/venv/
+/venv-*/
+/env/
+/ENV/
+.Python
+__pypackages__/
+pip-wheel-metadata/
+
+# Tests and developer caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.cache/
+.tox/
+.nox/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+/.test-artifacts/
+
+# Local application data, private datasets, and generated output. Keep generated
+# images in these directories; image extensions are deliberately NOT ignored.
+# Source/UI assets, docs images, and fixtures remain trackable wherever located.
+/.local-data/
+/data/
+/private-data/
+/datasets/
+/private-datasets/
+/training-data/
+/output/
+/outputs/
+/generated/
+/generated-images/
+/gallery/
+/gallery-output/
+/runs/
+/previews/
+/thumbnails/
+/inference-cache/
+/inference-tmp/
+/tmp/
+/temp/
+/models/
+/checkpoints/
+/settings.json
+
+# Model weights/checkpoints anywhere, regardless of extension capitalization.
+# Do not override or force-add these without an explicit reviewed exception.
+*.[sS][aA][fF][eE][tT][eE][nN][sS][oO][rR][sS]
+*.[cC][kK][pP][tT]
+*.[pP][tT]
+*.[pP][tT][hH]
+*.[oO][nN][nN][xX]
+*.[gG][gG][uU][fF]
+*.[bB][iI][nN]
+
+# Private application databases
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# Logs, Qt diagnostics, and temporary files
+/logs/
+*.log
+*.log.*
+*.dmp
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+*.orig
+
+# Private account-recovery material found during the local publication audit.
+# Keep the originals private; these rules do not delete or relocate them.
+/proton-recovery-phrase.pdf
+/proton_recovery.asc
+
+# Local credentials and machine-specific configuration
+.env
+.env.*
+*.env
+*.env.*
+# Only a reviewed placeholder template is allowed; never put real values here.
+!.env.example
+.envrc
+.netrc
+_netrc
+.pypirc
+.npmrc
+.git-credentials
+credentials.json
+credentials.yaml
+credentials.yml
+secrets.json
+secrets.yaml
+secrets.yml
+tokens.json
+api_keys.json
+service-account*.json
+client_secret*.json
+*.token
+*.[pP][eE][mM]
+*.[kK][eE][yY]
+*.[pP]12
+*.[pP][fF][xX]
+*.jks
+*.keystore
+*.kdbx
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+/secrets/
+/.secrets/
+/.aws/
+/.azure/
+/.gcloud/
+/.config/gcloud/
+/.ssh/
+/.codex/
+.idea/
+.vscode/
+
+# Windows and other desktop metadata
+Thumbs.db
+Desktop.ini
+.DS_Store
