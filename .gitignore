@@ -150,3 +150,16 @@ id_ed25519
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Local development notes and offline acceptance testing (not published)
+/docs/
+/scripts/test-offline.ps1
+/scripts/test-offline-ui.ps1
+/scripts/offline_acceptance.py
+/scripts/offline_ui_acceptance.py
+/tests/test_offline_acceptance.py
+/tests/test_offline_ui_acceptance.py
+/tests/test_powershell_console.py
+
+# Local zip backups
+*.zip
